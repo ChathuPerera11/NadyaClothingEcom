@@ -4,6 +4,10 @@ package com.chathupererajay.nadyafashion.controller;
 import com.chathupererajay.nadyafashion.model.*;
 import com.chathupererajay.nadyafashion.service.*;
 import com.chathupererajay.nadyafashion.dto.ProductDTO;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -12,6 +16,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -19,6 +25,9 @@ import org.springframework.web.bind.annotation.PostMapping;
  */
 @Controller
 public class AdminController {
+    public static String uploadDir = System.getProperty("user.dir") + 
+                                     "/src/main/resources/static/productImages";
+
     @Autowired
     CategoryService categoryService;
     @Autowired
@@ -77,5 +86,30 @@ public class AdminController {
        model.addAttribute("categories", categoryService.getAllCategories());
        return "productsAdd";
     }
+    @PostMapping("/admin/products/add")
+    public String productAddPost(@ModelAttribute("productDTO")ProductDTO productDTO,
+            @RequestParam("productImage")MultipartFile file,
+            @RequestParam("imgName")String imgName) throws IOException{
+        
+        // generating the imageUUID
+        String imageUUID;
+        if(!file.isEmpty()){
+            imageUUID = file.getOriginalFilename();
+            Path fileNameAndPath = Paths.get(uploadDir, imageUUID);
+            Files.write(fileNameAndPath, file.getBytes());
+        }else{
+            imageUUID = imgName;
+        }
+        Product product = new Product(productDTO.getId(), productDTO.getName(),
+                          productDTO.getPrice(),productDTO.getDescription(),
+                          imageUUID, categoryService.getCategoryById(productDTO.getCategoryId()).get());
+        
+        productService.addProduct(product);
+        return "redirect:/admin/products";
+    }
+            
+    
+    
+    
+    
 }
-
