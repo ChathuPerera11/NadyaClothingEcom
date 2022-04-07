@@ -90,7 +90,6 @@ public class AdminController {
     public String productAddPost(@ModelAttribute("productDTO")ProductDTO productDTO,
             @RequestParam("productImage")MultipartFile file,
             @RequestParam("imgName")String imgName) throws IOException{
-        
         // generating the imageUUID
         String imageUUID;
         if(!file.isEmpty()){
@@ -100,11 +99,9 @@ public class AdminController {
         }else{
             imageUUID = imgName;
         }
-        Product product = new Product(productDTO.getId(), productDTO.getName(),
-                          productDTO.getPrice(),productDTO.getDescription(),
-                          imageUUID, categoryService.getCategoryById(productDTO.getCategoryId()).get());
-        
-        productService.addProduct(product);
+        productDTO.setImageName(imageUUID);
+    
+        productService.addProduct(productDTO, categoryService);
         return "redirect:/admin/products";
     }
             
